@@ -79,7 +79,8 @@ def solvePoisson(rho):
     dctRho = dctn(rho);
     N, M = rho.shape;
     I, J = np.ogrid[0:N,0:M]
-    dctPhi = dctRho / 2 / (np.cos(np.pi*I/M) + np.cos(np.pi*J/N) - 2);
+    with np.errstate(divide='ignore'):
+        dctPhi = dctRho / 2 / (np.cos(np.pi*I/M) + np.cos(np.pi*J/N) - 2)
     dctPhi[0, 0] = 0 # handling the inf/nan value
     # now invert to get the result
     phi = idctn(dctPhi);
@@ -91,7 +92,6 @@ def solvePoisson_precomped(rho, scale):
     Uses precomputed scaling factors `scale`
     """
     dctPhi = dctn(rho) / scale
-    dctPhi[0, 0] = 0 # handling the inf/nan value
     # now invert to get the result
     phi = idctn(dctPhi, overwrite_x=True)
     return phi
@@ -99,7 +99,11 @@ def solvePoisson_precomped(rho, scale):
 def precomp_Poissonscaling(rho):
     N, M = rho.shape;
     I, J = np.ogrid[0:N,0:M]
-    return 2 * (np.cos(np.pi*I/M) + np.cos(np.pi*J/N) - 2);
+    scale = 2 * (np.cos(np.pi*I/M) + np.cos(np.pi*J/N) - 2)
+    # Handle the inf/nan value without a divide by zero warning:
+    # Equivalent to setting dctPhi[0, 0] to zero after scaling
+    scale[0, 0] = np.inf 
+    return scale
 
 def applyQ(p, WWx, WWy):
     """Apply the weighted transformation (A^T)(W^T)(W)(A) to 2D matrix p"""
