@@ -101,8 +101,10 @@ def precomp_Poissonscaling(rho):
     I, J = np.ogrid[0:N,0:M]
     scale = 2 * (np.cos(np.pi*I/M) + np.cos(np.pi*J/N) - 2)
     # Handle the inf/nan value without a divide by zero warning:
-    # Equivalent to setting dctPhi[0, 0] to zero after scaling
-    scale[0, 0] = np.inf 
+    # By Ghiglia et al.:
+    # "In practice we set dctPhi[0,0] = dctn(rho)[0, 0] to leave
+    #  the bias unchanged"
+    scale[0, 0] = 1. 
     return scale
 
 def applyQ(p, WWx, WWy):
